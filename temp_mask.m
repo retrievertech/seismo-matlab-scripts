@@ -6,6 +6,8 @@ ymask=[y_roi_ll,y_roi_lr,y_roi_ur,y_roi_ul];
 
 mask=poly2mask(xmask,ymask,heightVal,widthVal);  
 
+% other test change
+
 maskedimage=I;
 maskedimage(~mask)=0;
 imshow(maskedimage)
