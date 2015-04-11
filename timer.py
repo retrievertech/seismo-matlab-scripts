@@ -8,5 +8,5 @@ def timeStart(key):
   sys.stdout.flush()
 
 def timeEnd(key):
-  sys.stdout.write(str(time() - timeDict[key])+"\n")
+  sys.stdout.write(str(time() - timeDict[key])+"s \n")
   del timeDict[key]
