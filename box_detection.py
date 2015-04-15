@@ -7,7 +7,10 @@ from skimage.filters import threshold_otsu
 from skimage.morphology import disk, opening
 from skimage.segmentation import find_boundaries
 from scipy.ndimage.measurements import label
+from skimage.transform import hough_line, hough_line_peaks, probabilistic_hough_line
 timeEnd("import libs")
+
+import matplotlib.pyplot as plt
 
 out_dir = "out"
 
@@ -59,8 +62,72 @@ def get_boundary(filename, debug = False):
 
   return region_of_interest_boundary
 
+def get_hough_lines(image, minAngle, maxAngle):
+  angles = np.deg2rad(np.arange(minAngle, maxAngle, 1))
+  hough, angles, distances = hough_line(image, angles)
+  peak_hough, peak_angles, peak_distances = hough_line_peaks(hough, angles, distances, num_peaks = 50, threshold = 0.5*np.amax(hough), min_distance = 5, min_angle = 5)
+  lines = probabilistic_hough_line(image, theta = peak_angles, line_gap = 305, line_length = 7)
+  return lines
 
-# def get_box_lines(boundary):
+def plot_lines(image, lines, longest_line):
+  plt.imshow(image, cmap = plt.cm.gray)
+  max_len = 0
+  for line in lines:
+    x_vals = line[..., 0]
+    y_vals = line[..., 1]
+    plt.plot(x_vals, y_vals, linewidth = 2, color = 'green')
+
+    # Plot beginnings and ends of lines
+    # plt.plot(x_vals[0], y_vals[0], 'ys')
+    # plt.plot(x_vals[1], y_vals[1], 'rs')
+
+  # highlight the longest line segment in RED.
+  plt.plot([longest_line[0][0], longest_line[1][0]], [longest_line[0][1], longest_line[1][1]], linewidth = 2, color = 'red')
+  plt.autoscale(tight = True)
+
+def get_line_length(line):
+  return np.linalg.norm(np.subtract(line[1], line[0]))
+
+def get_box_lines(boundary, debug = False):
+  height, width = boundary.shape
+  [half_width, half_height] = np.floor([0.5 * width, 0.5 * height]).astype(int)
+
+  image_regions = {
+    "left": boundary[0 : height, 0 : half_width],
+    "right": boundary[0 : height, half_width : width],
+    "top": boundary[0 : half_height, 0 : width],
+    "bottom": boundary[half_height : height, 0 : width]
+  }
+
+  hough_lines = {
+    "left": np.array(get_hough_lines(image_regions["left"], minAngle = -10, maxAngle = 10)),
+    "right": np.array(get_hough_lines(image_regions["right"], minAngle = -10, maxAngle = 10)),
+    "top": np.array(get_hough_lines(image_regions["top"], minAngle = -120, maxAngle = 70)),
+    "bottom": np.array(get_hough_lines(image_regions["bottom"], minAngle = -120, maxAngle = 70))
+  }
+
+  line_lengths = { region: map(get_line_length, lines) for region, lines in hough_lines.iteritems() }
+  longest_lines = { region: hough_lines[region][np.argmax(lengths)] for region, lengths in line_lengths.iteritems() }
+
+  if debug:
+    plt.subplot(221)
+    plot_lines(image_regions["left"], hough_lines["left"], longest_lines["left"])
+
+    plt.subplot(222)
+    plot_lines(image_regions["right"], hough_lines["right"], longest_lines["right"])
+
+    plt.subplot(223)
+    plot_lines(image_regions["top"], hough_lines["top"], longest_lines["top"])
+
+    plt.subplot(224)
+    plot_lines(image_regions["bottom"], hough_lines["bottom"], longest_lines["bottom"])
+
+    plt.savefig(out_dir+"/hough_peaks.png")
+
+  return longest_lines
+
+
 
 # for testing
-get_boundary("in/dummy-seismo-small.png", debug=True)
+boundary = get_boundary("in/dummy-seismo-small.png", debug=True)
+lines = get_box_lines(boundary, debug=True)
