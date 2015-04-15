@@ -9,6 +9,8 @@ from skimage.segmentation import find_boundaries
 from scipy.ndimage.measurements import label
 timeEnd("import libs")
 
+out_dir = "out"
+
 def get_boundary(filename, debug = False):
   timeStart("read image")
   grayscale_image = misc.imread(filename, flatten = True)
@@ -45,15 +47,18 @@ def get_boundary(filename, debug = False):
   timeStart("mask region of interest")
   largest_component_id = np.argmax(areas) + 1
   region_of_interest_mask = (labeled_components != largest_component_id)
-  region_of_interest = np.copy(image_boundaries)
-  region_of_interest[region_of_interest_mask] = 0
+  region_of_interest_boundary = np.copy(image_boundaries)
+  region_of_interest_boundary[region_of_interest_mask] = 0
   timeEnd("mask region of interest")
 
   if debug:
-    misc.imsave("out/black_and_white_image.png", black_and_white_image)
-    misc.imsave("out/opened_image.png", opened_image)
-    misc.imsave("out/image_boundaries.png", image_boundaries)
-    misc.imsave("out/region_of_interest.png", region_of_interest)
+    misc.imsave(out_dir+"/black_and_white_image.png", black_and_white_image)
+    misc.imsave(out_dir+"/opened_image.png", opened_image)
+    misc.imsave(out_dir+"/image_boundaries.png", image_boundaries)
+    misc.imsave(out_dir+"/region_of_interest_boundary.png", region_of_interest_boundary)
+
+  return region_of_interest_boundary
+
 
 # def get_box_lines(boundary):
 
