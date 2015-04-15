@@ -4,7 +4,7 @@ from time import time
 timeDict = {}
 def timeStart(key):
   timeDict[key] = time()
-  sys.stdout.write(key+": ")
+  sys.stdout.write(key+" ... ")
   sys.stdout.flush()
 
 def timeEnd(key):
