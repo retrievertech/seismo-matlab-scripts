@@ -14,11 +14,13 @@ import matplotlib.pyplot as plt
 
 out_dir = "out"
 
-def get_boundary(filename, debug = False):
+def get_image(filename):
   timeStart("read image")
   grayscale_image = misc.imread(filename, flatten = True)
   timeEnd("read image")
-  
+  return grayscale_image
+
+def get_boundary(grayscale_image, debug = False):
   timeStart("threshold image")
   threshold_value = threshold_otsu(grayscale_image)
   black_and_white_image = (grayscale_image > threshold_value)
@@ -129,5 +131,6 @@ def get_box_lines(boundary, debug = False):
 
 
 # for testing
-boundary = get_boundary("in/dummy-seismo-small.png", debug=True)
+image = get_image("in/dummy-seismo-small.png")
+boundary = get_boundary(image, debug=True)
 lines = get_box_lines(boundary, debug=True)
