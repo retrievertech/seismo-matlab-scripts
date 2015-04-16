@@ -94,22 +94,31 @@ def get_box_lines(boundary, debug = False):
   height, width = boundary.shape
   [half_width, half_height] = np.floor([0.5 * width, 0.5 * height]).astype(int)
 
+  timeStart("split image")
   image_regions = {
     "left": boundary[0 : height, 0 : half_width],
     "right": boundary[0 : height, half_width : width],
     "top": boundary[0 : half_height, 0 : width],
     "bottom": boundary[half_height : height, 0 : width]
   }
+  timeEnd("split image")
 
+  timeStart("get hough lines")
   hough_lines = {
     "left": np.array(get_hough_lines(image_regions["left"], minAngle = -10, maxAngle = 10)),
     "right": np.array(get_hough_lines(image_regions["right"], minAngle = -10, maxAngle = 10)),
     "top": np.array(get_hough_lines(image_regions["top"], minAngle = -120, maxAngle = 70)),
     "bottom": np.array(get_hough_lines(image_regions["bottom"], minAngle = -120, maxAngle = 70))
   }
+  timeEnd("get hough lines")
 
+  timeStart("calculate line lengths")
   line_lengths = { region: map(get_line_length, lines) for region, lines in hough_lines.iteritems() }
+  timeEnd("calculate line lengths")
+
+  timeStart("select longest lines")
   longest_lines = { region: hough_lines[region][np.argmax(lengths)] for region, lengths in line_lengths.iteritems() }
+  timeEnd("select longest lines")
 
   if debug:
     plt.subplot(221)
