@@ -120,6 +120,10 @@ def get_box_lines(boundary, debug = False):
   longest_lines = { region: hough_lines[region][np.argmax(lengths)] for region, lengths in line_lengths.iteritems() }
   timeEnd("select longest lines")
 
+  # translate lines to account for working with halved image regions
+  longest_lines["bottom"] += [0, half_height]
+  longest_lines["right"] += [half_width, 0]
+
   if debug:
     plt.subplot(221)
     plot_lines(image_regions["left"], hough_lines["left"], longest_lines["left"])
