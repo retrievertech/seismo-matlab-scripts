@@ -7,7 +7,11 @@ from skimage.filters import threshold_otsu
 from skimage.morphology import disk, opening
 from skimage.segmentation import find_boundaries
 from scipy.ndimage.measurements import label
+
 from skimage.transform import hough_line, hough_line_peaks, probabilistic_hough_line
+import skimage.draw as skidraw
+
+from line_intersection import seg_intersect
 timeEnd("import libs")
 
 import matplotlib.pyplot as plt
@@ -141,9 +145,28 @@ def get_box_lines(boundary, debug = False):
 
   return longest_lines
 
+def get_roi_corners(lines, debug = False, image = None):
+  timeStart("find intersections")
+  corners = {
+    "top_left": seg_intersect(lines["top"][0], lines["top"][1], lines["left"][0], lines["left"][1]),
+    "top_right": seg_intersect(lines["top"][0], lines["top"][1], lines["right"][0], lines["right"][1]),
+    "bottom_left": seg_intersect(lines["bottom"][0], lines["bottom"][1], lines["left"][0], lines["left"][1]),
+    "bottom_right": seg_intersect(lines["bottom"][0], lines["bottom"][1], lines["right"][0], lines["right"][1])
+  }
+  timeEnd("find intersections")
 
+  if debug:
+    inner_circles = { corner_name: skidraw.circle(corner[1], corner[0], 10) for corner_name, corner in corners.iteritems() }
+    outer_circles = { corner_name: skidraw.circle(corner[1], corner[0], 50) for corner_name, corner in corners.iteritems() }
+    for corner_name in inner_circles:
+      image[outer_circles[corner_name]] = 0
+      image[inner_circles[corner_name]] = 255
+    misc.imsave(out_dir+"/roi_corners.png", image)
+
+  return corners
 
 # for testing
 image = get_image("in/dummy-seismo-small.png")
 boundary = get_boundary(image, debug=True)
 lines = get_box_lines(boundary, debug=True)
+get_roi_corners(lines, debug=True, image=image)
