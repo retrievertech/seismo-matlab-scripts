@@ -1,5 +1,7 @@
 # seismo-matlab-scripts
 
+All of these scripts were ported to Python, likely with some modification of parameters.  This repository is simply a place to store the original matlab scripts used in obtaining the ROI and meanlines.
+
 (pasted from [here](https://docs.google.com/document/d/15OJ0cvLZTeJysPPoNEUx0-Hfrh-ozMO2BZyEjHl_w6o/edit))
 
 This describes the routines used to get the ROI of the data box and the meanlines.
